@@ -65,6 +65,19 @@ def pca_noise_reduction(
     # RMS before/after per channel (in linear)
     rms_before = np.sqrt(np.mean(data**2, axis=0))
     rms_after = np.sqrt(np.mean(out**2, axis=0))
+
+    # Preserve per-channel gain relationships by re-equalizing the RMS of each
+    # output channel to match its input RMS (where meaningful). This keeps the
+    # relative channel gains intact while still benefiting from the PCA-based
+    # noise suppression in the time/frequency content.
+    safe = (rms_before > 1e-10) & (rms_after > 1e-12)
+    scales = np.ones_like(rms_before)
+    scales[safe] = rms_before[safe] / rms_after[safe]
+    out *= scales[np.newaxis, :]
+    out = np.clip(out, -1.0, 1.0)
+
+    # Recompute RMS after gain compensation for reporting.
+    rms_after = np.sqrt(np.mean(out**2, axis=0))
     rms_change_db = 20.0 * np.log10(
         np.where(rms_before > 1e-10, rms_after / rms_before, 1.0)
     )

@@ -11,8 +11,8 @@ A command-line tool that processes **A-format ambisonic** WAV files by normalizi
 5. **Six-channel rule** — If exactly 6 channels remain after normalization, the first two channels (indices 0 and 1) are dropped so the output has 4 channels.
 6. **Drop silent channels** — Any channel that required more than 96 dB gain (effectively silence or noise) is dropped and not written.
 7. **Noise reduction** — Reduces noise in the multichannel signal using either:
-   - **PCA-based noise reduction** (default): runs PCA on the multichannel signal and reconstructs from the top *k* components; lower-variance components are treated as noise.
-   - **Noisereduce spectral-gating**: when `-noisereduce` is given, uses the spectral-gating algorithm from the domain-general noise reduction method of Sainburg & Zorea (*Sci Rep* 15, 30905, 2025; [`https://www.nature.com/articles/s41598-025-13108-x`](https://www.nature.com/articles/s41598-025-13108-x)).
+   - **Noisereduce spectral-gating** (default): uses the spectral-gating algorithm from the domain-general noise reduction method of Sainburg & Zorea (*Sci Rep* 15, 30905, 2025; [`https://www.nature.com/articles/s41598-025-13108-x`](https://www.nature.com/articles/s41598-025-13108-x)). This mode is designed to better preserve ambisonic gain and phase relationships between channels.
+   - **PCA-based noise reduction** (with `-pca`): runs PCA on the multichannel signal and reconstructs from the top *k* components; lower-variance components are treated as noise. Even with additional safeguards, PCA can still alter per-channel gain and inter-channel phase relationships, potentially damaging ambisonic information, so this mode should be used with caution.
 
    The `-nr` value controls the reduction intensity for **both** PCA and Noisereduce modes, and can also disable noise reduction entirely (see below).
 8. **Describe (optional)** — If `-describe` is given, the tool runs **YAMnet** (a pre-trained audio event classifier from TensorFlow Hub) on the processed audio (after PCA noise reduction, just before writing). The audio is mixed to mono, resampled to 16 kHz, and analyzed in fixed-llength segments. The tool prints a table to the terminal with at most **5 events per minute** of audio. Each row has: start time (s), end time (s), YAMnet’s predicted label for that segment, and confidence (0–1). No other processing is skipped; the table is informational only.
@@ -23,7 +23,7 @@ The tool prints summary statistics for normalization (per-channel gain in dB) an
 ## Usage
 
 ```text
-python process-a-format.py [-input CH1,CH2,...] [-output CH1,CH2,...] [-nr 0-10] [-ss START] [-to END] [-describe] [-loudnorm] [-noisereduce] <input.wav> <output.wav>
+python process-a-format.py [-input CH1,CH2,...] [-output CH1,CH2,...] [-nr 0-10] [-ss START] [-to END] [-describe] [-loudnorm] [-pca] <input.wav> <output.wav>
 ```
 
 - **<input.wav>** — Input WAV path (must have 4+ channels, uncompressed PCM).
@@ -41,7 +41,7 @@ Short reference in the style of a `--help` summary (one option and description p
   -nr 0-10              Noise reduction intensity (1=minimal, 10-maximal); 0 disables noise reduction.
   -describe             Run YAMnet and print event table (start, end, label, confidence; max 5 events/min).
   -loudnorm             Apply EBU R128 loudness normalization (target -23 LUFS) instead of 0 dB peak normalization.
-  -noisereduce          Use Noisereduce spectral-gating noise reduction instead of PCA.
+  -pca                  Use PCA-based noise reduction instead of the default Noisereduce spectral-gating algorithm.
 ```
 
 ## Command-line options
@@ -85,7 +85,7 @@ Trim the audio to a **time range** before any other processing. Times can be giv
 
 Control the **intensity of noise reduction** (PCA or Noisereduce) from 1 (minimal) to 10 (maximal). With `-nr 0`, the noise reduction step is explicitly skipped.
 
-- **Implementation (PCA mode, default):** PCA is run on the multichannel float matrix (after normalization and channel dropping). The number of components kept, *k*, is derived from `-nr` and the current channel count *n*:
+- **Implementation (PCA mode, enabled with `-pca`):** PCA is run on the multichannel float matrix (after normalization and channel dropping). The number of components kept, *k*, is derived from `-nr` and the current channel count *n*:
   - `-nr` omitted: *k* = max(1, *n* − 1). One component is dropped (original default behavior).
   - `-nr 0`: Noise reduction is skipped entirely; the script prints that the PCA/Noisereduce step would normally run but has been skipped.
   - `-nr 1`: Minimal reduction — *k* = *n* − 1 (keep all but one component).
@@ -102,7 +102,7 @@ Control the **intensity of noise reduction** (PCA or Noisereduce) from 1 (minima
   | 4–7   | 2               |
   | 8–10  | 1               |
 
-  The script fits PCA, keeps the top *k* components, reconstructs the signal from them, and writes the result. Progress is shown during the PCA step. In **Noisereduce mode** (`-noisereduce`), the same `-nr` value is mapped to the underlying `prop_decrease` parameter to control spectral-gating strength; `-nr 0` still disables the noise reduction step entirely.
+  The script fits PCA, keeps the top *k* components, reconstructs the signal from them, and writes the result. Progress is shown during the PCA step. In **Noisereduce mode** (default), the same `-nr` value is mapped to the underlying `prop_decrease` parameter to control spectral-gating strength; `-nr 0` still disables the noise reduction step entirely.
 
 ### `-loudnorm`
 

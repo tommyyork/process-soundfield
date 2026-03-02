@@ -42,7 +42,7 @@ ss_arg: str | None = None
 to_arg: str | None = None
 describe_flag = False
 loudnorm_flag = False
-use_noisereduce = False
+use_pca = False
 
 while "-input" in args:
     i = args.index("-input")
@@ -85,13 +85,13 @@ if "-describe" in args:
 if "-loudnorm" in args:
     loudnorm_flag = True
     args = [a for a in args if a != "-loudnorm"]
-if "-noisereduce" in args:
-    use_noisereduce = True
-    args = [a for a in args if a != "-noisereduce"]
+if "-pca" in args:
+    use_pca = True
+    args = [a for a in args if a != "-pca"]
 if len(args) != 2:
     print(
         "Usage: python process-a-format.py [-input CH1,CH2,...] [-output CH1,CH2,...] "
-        "[-nr 0-10] [-ss START] [-to END] [-describe] [-loudnorm] [-noisereduce] "
+        "[-nr 0-10] [-ss START] [-to END] [-describe] [-loudnorm] [-pca] "
         "<input.wav> <output.wav>"
     )
     sys.exit(1)
@@ -306,12 +306,11 @@ try:
     skip_nr = nr_intensity == 0 if nr_intensity is not None else False
 
     if skip_nr:
-        algo_desc = "Noisereduce spectral-gating" if use_noisereduce else "PCA noise reduction"
         print(
-            f"Noise reduction: -nr 0 specified; {algo_desc} step would normally run here "
-            f"but has been skipped."
+            "Noise reduction: -nr 0 specified; noise reduction (Noisereduce or PCA) "
+            "would normally run here but has been skipped."
         )
-    elif use_noisereduce:
+    elif not use_pca:
         print(
             f"Applying Noisereduce spectral-gating noise reduction"
             f"{f' (intensity {nr_intensity}/10)' if nr_intensity is not None else ''}..."

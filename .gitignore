@@ -1,2 +1,5 @@
+__pycache__/
+.pytest_cache/
 venv
-MixPre-004*
+testdata/MixPre-004*
+testdata/test-ambisonic-processed*
