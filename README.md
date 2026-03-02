@@ -142,5 +142,5 @@ pip install pyloudnorm
 ## Supported formats
 
 - **PCM bit depths:** 16-, 24-, and 32-bit integer PCM (uncompressed WAV).
-- **Channels:** At least 4 channels required; channel selection and dropping may reduce the count before PCA and output.
+- **Channels:** At least 4 channels required; channel selection and dropping may reduce the count before noise reduction and output.
 
