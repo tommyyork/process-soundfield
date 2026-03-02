@@ -86,6 +86,8 @@ Trim the audio to a **time range** before any other processing. Times can be giv
 
 Control the **intensity of noise reduction** (PCA or Noisereduce) from 1 (minimal) to 10 (maximal). With `-nr 0`, the noise reduction step is explicitly skipped.
 
+- **Implementation (Noisereduce mode, default):** When `-pca` is **not** supplied, noise reduction uses the Noisereduce spectral-gating algorithm. The `-nr` value 1–10 is mapped to the underlying `prop_decrease` parameter to control spectral-gating strength (higher values apply stronger reduction); `-nr 0` still disables the noise reduction step entirely. This mode is generally preferred for preserving the ambisonic scene because it is designed to better maintain inter-channel gain and phase relationships.
+
 - **Implementation (PCA mode, enabled with `-pca`):** PCA is run on the multichannel float matrix (after normalization and channel dropping). The number of components kept, *k*, is derived from `-nr` and the current channel count *n*:
   - `-nr` omitted: *k* = max(1, *n* − 1). One component is dropped (original default behavior).
   - `-nr 0`: Noise reduction is skipped entirely; the script prints that the PCA/Noisereduce step would normally run but has been skipped.
@@ -104,8 +106,6 @@ Control the **intensity of noise reduction** (PCA or Noisereduce) from 1 (minima
   | 8–10  | 1               |
 
   The script fits PCA, keeps the top *k* components, reconstructs the signal from them, and writes the result. Even with additional safeguards (such as per-channel RMS re-equalization), PCA can still modify inter-channel phase and gain relationships, so when working with ambisonic material you should only use `-pca` if you are comfortable with this trade-off.
-
-  In **Noisereduce mode** (default, when `-pca` is not supplied), the same `-nr` value is mapped to the underlying `prop_decrease` parameter to control spectral-gating strength; `-nr 0` still disables the noise reduction step entirely. This mode is generally preferred for preserving the ambisonic scene.
 
 ### `-loudnorm`
 
