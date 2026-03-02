@@ -102,7 +102,9 @@ Control the **intensity of noise reduction** (PCA or Noisereduce) from 1 (minima
   | 4–7   | 2               |
   | 8–10  | 1               |
 
-  The script fits PCA, keeps the top *k* components, reconstructs the signal from them, and writes the result. Progress is shown during the PCA step. In **Noisereduce mode** (default), the same `-nr` value is mapped to the underlying `prop_decrease` parameter to control spectral-gating strength; `-nr 0` still disables the noise reduction step entirely.
+  The script fits PCA, keeps the top *k* components, reconstructs the signal from them, and writes the result. Even with additional safeguards (such as per-channel RMS re-equalization), PCA can still modify inter-channel phase and gain relationships, so when working with ambisonic material you should only use `-pca` if you are comfortable with this trade-off.
+
+  In **Noisereduce mode** (default, when `-pca` is not supplied), the same `-nr` value is mapped to the underlying `prop_decrease` parameter to control spectral-gating strength; `-nr 0` still disables the noise reduction step entirely. This mode is generally preferred for preserving the ambisonic scene.
 
 ### `-loudnorm`
 
