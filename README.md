@@ -2,6 +2,8 @@
 
 A command-line tool that processes **A-format ambisonic** WAV files by normalizing levels and applying configurable noise reduction. It reads a multichannel WAV (4+ channels), optionally selects and reorders channels via `-input` and `-output`, normalizes channels (either to 0 dB FS peak or to a target EBU R128 loudness with `-loudnorm`), drops silent or near-silent channels, then reduces noise via either PCA or the **Noisereduce** spectral-gating algorithm and writes a multichannel WAV suitable for A-format / ambisonic use.
 
+This script and its supporting modules were structured and refactored with the help of the **Cursor** IDE’s AI coding assistant (GPT‑5.1-based) to emphasize modular design (`wav_utils.py`, `normalization.py`, `noise_reduction.py`, `yamnet.py`, `ambisonics.py`) and to keep the main entry point, `process-a-format.py`, focused on orchestration and command-line behavior. Understanding that some of the implementation was AI-assisted may help explain the consistent style, thorough docstrings, and the presence of explicit tests around gain and phase preservation for ambisonic material.
+
 ## What it does
 
 1. **Load** — Reads a WAV file (16-, 24-, or 32-bit PCM, 4+ channels).
